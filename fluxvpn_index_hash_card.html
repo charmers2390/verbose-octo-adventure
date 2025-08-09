@@ -1,0 +1,664 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>FluxVPN — Private. Fast. Futuristic.</title>
+<meta name="theme-color" content="#0a0f1f" />
+<script src="https://js.stripe.com/v3/"></script>
+<style>
+  :root{
+    --bg:#0a0f1f; --bg-2:#0b1226; --text:#e8f0ff; --muted:#9bb2ff;
+    --accent:#6df0ff; --accent2:#9a6bff; --accent3:#00ffa3;
+    --card:#0e1530aa; --stroke:#1a2550; --radius:16px;
+    --shadow-neon: 0 0 14px rgba(109,240,255,.55), 0 0 24px rgba(154,107,255,.35);
+    --grad: conic-gradient(from 160deg at 50% 50%, #6df0ff, #9a6bff, #00ffa3, #6df0ff);
+  }
+  html,body{ height:100%; background:radial-gradient(1200px 800px at 80% -10%, #13224a 0%, rgba(19,34,74,0) 60%), var(--bg); color:var(--text); font: 500 16px/1.55 Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial; margin:0 }
+  /* Stars */
+  .stars, .stars:before, .stars:after{ position:fixed; inset:0; content:""; z-index:-2; background:
+      radial-gradient(2px 2px at 20% 30%, #8ab4ff55 50%, transparent 51%),
+      radial-gradient(2px 2px at 80% 20%, #6df0ff55 50%, transparent 51%),
+      radial-gradient(1.5px 1.5px at 60% 70%, #9a6bff55 50%, transparent 51%),
+      radial-gradient(1.5px 1.5px at 40% 80%, #00ffa355 50%, transparent 51%),
+      linear-gradient(transparent, transparent);
+    animation: twinkle 8s linear infinite; }
+  .stars:before{ filter:blur(1px); opacity:.6; animation-duration:12s }
+  .stars:after { filter:blur(2px); opacity:.4; animation-duration:20s }
+  @keyframes twinkle{ 50%{ opacity:.7 } }
+  /* Header */
+  header{
+    position:sticky; top:0; z-index:50; backdrop-filter:saturate(160%) blur(10px);
+    background:linear-gradient(180deg, rgba(10,15,31,.85), rgba(10,15,31,.55));
+    border-bottom:1px solid #121a39; box-shadow:0 8px 30px rgba(0,0,0,.25);
+  }
+  .nav{ max-width:1200px; margin:0 auto; padding:14px 18px; display:flex; align-items:center; gap:14px; }
+  .logo{ display:flex; align-items:center; gap:10px; text-decoration:none; color:var(--text); }
+  .logo-badge{ width:36px; height:36px; border-radius:50%; background:radial-gradient(circle at 30% 30%, #6df0ff 0 40%, #9a6bff 60%, #00ffa3 85%); box-shadow: var(--shadow-neon); position:relative; overflow:hidden; }
+  .logo-badge:after{ content:""; position:absolute; inset:-2px; border-radius:50%;
+    background:conic-gradient(from 0deg, #6df0ff, transparent 20%, #9a6bff 50%, transparent 65%, #00ffa3 85%, transparent);
+    filter:blur(12px); opacity:.5; mix-blend:screen; animation: spin 8s linear infinite; }
+  @keyframes spin { to{ transform:rotate(360deg) } }
+  .logo span{ font-weight:800; letter-spacing:.5px }
+  nav ul{ list-style:none; display:flex; gap:10px; margin-left:auto; align-items:center; }
+  nav a{ padding:10px 14px; border-radius:12px; text-decoration:none; color:var(--muted); position:relative; display:inline-block; }
+  nav a:hover{ color:var(--text) }
+  nav a:after{ content:""; position:absolute; left:12px; right:12px; bottom:6px; height:2px; border-radius:2px; background:linear-gradient(90deg, transparent, var(--accent), transparent);
+    transform:scaleX(0); transform-origin:50% 50%; transition:transform .25s ease; box-shadow:var(--shadow-neon); }
+  nav a:hover:after{ transform:scaleX(1) }
+  .nav-cta{ margin-left:6px; padding:10px 14px; border-radius:12px; border:1px solid #1d2b57;
+    background:linear-gradient(180deg, #101a3a, #0e1731); color:#d8e1ff; box-shadow: inset 0 0 0 1px #25356b, 0 0 20px #6df0ff33; }
+  /* Sections */
+  section{ padding:84px 18px }
+  .container{ max-width:1200px; margin:0 auto }
+  .hero{ position:relative; overflow:hidden; padding: clamp(64px, 10vw, 120px) 18px 64px; isolation:isolate; }
+  .hero .wrap{ max-width:1200px; margin:0 auto; display:grid; grid-template-columns:1.1fr .9fr; gap:28px; align-items:center; }
+  .title{ font-weight:900; font-size: clamp(32px, 5.8vw, 64px); line-height:1.04; letter-spacing:.2px; text-shadow: 0 0 20px #6df0ff33, 0 0 35px #9a6bff22; }
+  .subtitle{ color:#c7d6ff; font-size: clamp(16px, 1.5vw, 18px); margin-top:14px }
+  .hero-cta{ display:flex; gap:12px; margin-top:22px; flex-wrap:wrap }
+  .btn{ padding:12px 16px; border-radius:12px; border:1px solid #203060; background:linear-gradient(180deg, #111c3f, #0e1731); color:var(--text);
+    text-decoration:none; display:inline-flex; align-items:center; gap:10px; box-shadow: 0 6px 22px rgba(0,0,0,.35), 0 0 24px #6df0ff33; cursor:pointer; }
+  .btn:hover{ transform:translateY(-2px); box-shadow: 0 10px 26px rgba(0,0,0,.45), var(--shadow-neon) }
+  .term{ display:inline-block; padding:2px 10px; border-radius:999px; border:1px solid #263872; color:#c8d6ff;
+    background:linear-gradient(180deg, #0e1838, #0a122c); box-shadow: inset 0 0 0 1px #263872; margin-bottom:16px; font-size:13px; letter-spacing:.4px; }
+  .device{ aspect-ratio: 4 / 3; border-radius:22px; border:1px solid #213160; background:linear-gradient(160deg, #09112b, #0d1a3a);
+    box-shadow: var(--shadow-neon), 0 25px 80px rgba(0,0,0,.45); position:relative; overflow:hidden; }
+  .device:before{ content:""; position:absolute; inset:-20%; background:var(--grad); filter:blur(40px); opacity:.27; animation: drift 12s linear infinite; }
+  @keyframes drift { 50%{ transform:translate3d(10px,-10px,0) rotate(20deg) } 100%{ transform:translate3d(-10px,10px,0) rotate(-20deg) } }
+  .terminal{ position:absolute; inset:14px; padding:14px; border-radius:16px; border:1px solid #223469; background:#080f25cc; overflow:auto; font-family: ui-monospace, Menlo, Consolas, monospace;
+    box-shadow: inset 0 0 0 1px #233771; }
+  .prompt{ color:#9a6bff } .ok{ color:#00ffa3 }
+  .grid{ display:grid; gap:18px; grid-template-columns: repeat(3, minmax(0,1fr)); }
+  .card{ border:1px solid #1e2b58; background:linear-gradient(180deg, #0d1736, #0a132d); border-radius:var(--radius); padding:18px; box-shadow: 0 6px 22px rgba(0,0,0,.35);
+    transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease; position:relative; overflow:hidden; }
+  .card:hover{ transform: translateY(-4px); border-color:#2a3b7a; box-shadow: 0 12px 32px rgba(0,0,0,.45), var(--shadow-neon) }
+  .card h3{ margin:6px 0 6px; font-size:18px } .card p{ color:#c5d3ff; font-size:15px }
+  .chip{ position:absolute; top:12px; right:12px; font-size:12px; color:#0c162f; background:linear-gradient(90deg, #6df0ff, #9a6bff, #00ffa3);
+    padding:6px 10px; border-radius:999px; box-shadow: var(--shadow-neon); }
+  .pricing-head{ display:flex; align-items:center; justify-content:space-between; gap:14px; margin-bottom:18px }
+  .toggle{ display:inline-flex; align-items:center; gap:8px; background:#0e1734; border:1px solid #24356f; border-radius:999px; padding:6px; box-shadow: inset 0 0 0 1px #24356f; }
+  .toggle button{ border:0; background:transparent; color:#bcd1ff; padding:8px 12px; border-radius:999px; cursor:pointer; transition:.15s; }
+  .toggle button.active{ color:#061028; background:linear-gradient(90deg, #6df0ff, #9a6bff); box-shadow:var(--shadow-neon); }
+  .price{ display:flex; align-items:flex-end; gap:8px; margin-top:12px; font-weight:900; }
+  .price big{ font-size:40px } .price small{ color:#9fb3ff }
+  .tier ul{ list-style:none; padding:0; margin:16px 0 0; display:grid; gap:8px; color:#c6d4ff }
+  .tier li{ display:flex; align-items:center; gap:8px }
+  .tick{ width:14px; height:14px; border-radius:3px; border:1px solid #2a3b71; background:#0f1733; box-shadow: inset 0 0 0 1px #2a3b71; position:relative }
+  .tick:after{ content:""; position:absolute; inset:2px; background:linear-gradient(180deg, #00ffa3, #6df0ff); border-radius:2px; opacity:.9; }
+  .cta-bar{ margin-top:26px; display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .dl{ border:1px solid #1f2c59; border-radius:16px; padding:16px; background:linear-gradient(180deg, #0c1533, #0a122b); }
+  .dl small{ display:block; color:#9fb3ff; margin-top:6px }
+  .faq{ display:grid; gap:12px; }
+  .faq details{ border:1px solid #1d2b57; border-radius:14px; background:#0d1634; padding:12px 14px; }
+  .faq summary{ cursor:pointer; color:#d7e3ff; font-weight:700 } .faq p{ color:#c5d3ff }
+  footer{ padding:36px 18px 64px; border-top:1px solid #121a39; background:linear-gradient(180deg, rgba(10,15,31,.55), rgba(10,15,31,.85)); }
+  .foot{ max-width:1200px; margin:0 auto; display:grid; gap:10px; color:#96abff }
+  .foot small a{ color:#cfe0ff; text-decoration:none }
+  /* Modals */
+  .modal-backdrop{position:fixed;inset:0;background:rgba(3,8,20,.6);backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;z-index:100}
+  .modal{width:min(620px,92vw);border:1px solid #223469;border-radius:16px;background:linear-gradient(180deg,#0d1634,#0a122b);box-shadow:0 20px 60px rgba(0,0,0,.6);padding:18px}
+  .modal h3{margin:6px 0 8px}.modal p{color:#c7d6ff;margin:0}
+  .row{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+  .pill{display:inline-flex;align-items:center;gap:8px;border:1px solid #2a3b71;border-radius:999px;padding:10px 14px;background:#0f1733;color:#eaf1ff;cursor:pointer}
+  .hint{color:#9fb3ff;font-size:13px}
+  /* Pay modal layout */
+  #payArea{display:none}
+  #payment-request-button{margin-top:8px}
+  .divider{display:flex;align-items:center;gap:10px;color:#9db2ff;margin:12px 0}
+  .divider:before,.divider:after{content:"";height:1px;background:#24356f;flex:1}
+  .field{display:flex;flex-direction:column;gap:6px;margin-top:10px}
+  .text{padding:12px;border-radius:12px;border:1px solid #24356f;background:#0b1431;color:#eaf1ff}
+  .paybtn{margin-top:10px;width:100%}
+  .status{min-height:20px;margin-top:8px;color:#9fb3ff;font-size:13px}
+  .panel{border:1px solid #2a3b71;background:#0f1733;border-radius:12px;padding:14px}
+  @media (max-width: 920px){ .hero .wrap{ grid-template-columns:1fr } .grid{ grid-template-columns:1fr 1fr } .cta-bar{ grid-template-columns:1fr } nav ul{ display:none } }
+  @media (max-width:620px){ .grid{ grid-template-columns:1fr } }
+</style>
+</head>
+<body>
+<div class="stars" aria-hidden="true"></div>
+
+<header>
+  <div class="nav">
+    <a class="logo" href="#/" data-route="#/">
+      <div class="logo-badge" aria-hidden="true"></div>
+      <span>FluxVPN</span>
+    </a>
+    <nav>
+      <ul id="deskNav" aria-label="Primary">
+        <li><a href="#/features" data-route="#/features">Features</a></li>
+        <li><a href="#/pricing" data-route="#/pricing">Pricing</a></li>
+        <li><a href="#/download" data-route="#/download">Download</a></li>
+        <li><a href="#/faq" data-route="#/faq">FAQ</a></li>
+        <li><a class="nav-cta" href="#/get-started" data-route="#/get-started">Get Started</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<main id="home">
+  <!-- HERO / (#/) -->
+  <section class="hero" id="section-home" data-path="/">
+    <div class="wrap">
+      <div>
+        <span class="term">Next-gen encryption • Quantum-resistant preview</span>
+        <h1 class="title">Privacy that feels <em style="color:var(--accent)">from the future</em>.</h1>
+        <p class="subtitle">FluxVPN wraps your traffic in multi-hop, ChaCha20-Poly1305 tunnels with perfect forward secrecy, geo-shifts in a tap, and zero-knowledge login. All in a neon-slick UI that hums.</p>
+        <div class="hero-cta">
+          <a class="btn" href="#/get-started" data-route="#/get-started"><span style="width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:var(--shadow-neon)"></span> Start free</a>
+          <a class="btn" href="#/download" data-route="#/download">Download apps</a>
+          <a class="btn" href="#/features" data-route="#/features">See how it works</a>
+        </div>
+      </div>
+      <div class="device" aria-label="Live console mock">
+        <div class="terminal" aria-live="polite">
+<pre id="term">
+<span class="prompt">FluxVPN ▸</span> initializing modules...
+<span class="ok">✔</span> cipher: chacha20-poly1305
+<span class="ok">✔</span> key-exchange: X25519
+<span class="ok">✔</span> hop-chain: FRA → NYC → SIN
+<span class="ok">✔</span> kill-switch: engaged
+<span class="prompt">FluxVPN ▸</span> connecting…
+</pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES /#/features -->
+  <section id="features" class="container" data-path="/features">
+    <h2 class="title" style="font-size:32px">Why FluxVPN</h2>
+    <p class="subtitle">Performance and privacy without the headache.</p>
+    <div class="grid">
+      <article class="card">
+        <span class="chip">Speed+</span>
+        <h3>Warp-grade speeds</h3>
+        <p>Our wire-level protocol minimizes overhead and intelligently routes around congestion so your streams and downloads stay buttery.</p>
+      </article>
+      <article class="card">
+        <span class="chip">Stealth</span>
+        <h3>Obfuscated everywhere</h3>
+        <p>Disguises VPN traffic as ordinary HTTPS to dodge throttling and deep-packet inspection on restrictive networks.</p>
+      </article>
+      <article class="card">
+        <span class="chip">Zero-Log</span>
+        <h3>Trustless by design</h3>
+        <p>Ephemeral keys, diskless servers, and privacy-first telemetry. We literally can’t see your activity.</p>
+      </article>
+    </div>
+
+    <div class="grid" style="margin-top:18px">
+      <article class="card">
+        <h3>Multi-hop routes</h3>
+        <p>Chain through 2–3 regions for extra unlinkability without turning your connection into molasses.</p>
+      </article>
+      <article class="card">
+        <h3>Smart kill switch</h3>
+        <p>Blocks traffic the instant a tunnel drops—no accidental leaks, ever.</p>
+      </article>
+      <article class="card">
+        <h3>Mesh devices</h3>
+        <p>Securely reach your phone, laptop, and home lab as if they’re on one private network.</p>
+      </article>
+    </div>
+  </section>
+
+  <!-- PRICING /#/pricing -->
+  <section id="pricing" class="container" data-path="/pricing">
+    <div class="pricing-head">
+      <h2 class="title" style="font-size:32px">Simple pricing</h2>
+      <div class="toggle" role="tablist" aria-label="Billing period">
+        <button id="mBtn" class="active" role="tab" aria-selected="true">Monthly</button>
+        <button id="yBtn" role="tab" aria-selected="false">Yearly <span aria-hidden="true">-20%</span></button>
+      </div>
+    </div>
+
+    <div class="grid">
+      <article class="card tier" aria-label="Starter plan">
+        <h3>Starter</h3>
+        <div class="price"><big id="p1">$6</big><small>/mo</small></div>
+        <ul>
+          <li><span class="tick" aria-hidden="true"></span> 1 device</li>
+          <li><span class="tick" aria-hidden="true"></span> 50 locations</li>
+          <li><span class="tick" aria-hidden="true"></span> Unlimited data</li>
+        </ul>
+        <div class="hero-cta"><button class="btn choose-plan" data-plan="Starter" data-monthly="6">Choose Starter</button></div>
+      </article>
+
+      <article class="card tier" aria-label="Pro plan">
+        <span class="chip">Popular</span>
+        <h3>Pro</h3>
+        <div class="price"><big id="p2">$10</big><small>/mo</small></div>
+        <ul>
+          <li><span class="tick"></span> 5 devices</li>
+          <li><span class="tick"></span> Multi-hop</li>
+          <li><span class="tick"></span> Obfuscation</li>
+        </ul>
+        <div class="hero-cta"><button class="btn choose-plan" data-plan="Pro" data-monthly="10">Choose Pro</button></div>
+      </article>
+
+      <article class="card tier" aria-label="Teams plan">
+        <h3>Teams</h3>
+        <div class="price"><big id="p3">$16</big><small>/mo</small></div>
+        <ul>
+          <li><span class="tick"></span> 20 devices</li>
+          <li><span class="tick"></span> Mesh networking</li>
+          <li><span class="tick"></span> Priority support</li>
+        </ul>
+        <div class="hero-cta"><button class="btn choose-plan" data-plan="Teams" data-monthly="16">Choose Teams</button></div>
+      </article>
+    </div>
+
+    <div class="cta-bar">
+      <div class="dl">
+        <strong>Desktop</strong>
+        <small>Windows • macOS • Linux</small>
+        <div class="hero-cta" style="margin-top:10px">
+          <a class="btn" href="#/download" data-route="#/download">Download</a>
+          <a class="btn" href="#/download" data-route="#/download">Verify checksum</a>
+        </div>
+      </div>
+      <div class="dl">
+        <strong>Mobile</strong>
+        <small>iOS • Android</small>
+        <div class="hero-cta" style="margin-top:10px">
+          <a class="btn" href="#/download" data-route="#/download">App Store</a>
+          <a class="btn" href="#/download" data-route="#/download">Play Store</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DOWNLOAD /#/download -->
+  <section id="download" class="container" data-path="/download">
+    <h2 class="title" style="font-size:32px">Download & connect</h2>
+    <p class="subtitle">Install, tap connect, disappear (the good kind).</p>
+    <div class="grid">
+      <article class="card">
+        <h3>1. Install</h3>
+        <p>Grab the app for your platform and run the installer. We keep things tiny and native.</p>
+      </article>
+      <article class="card">
+        <h3>2. Login (optional)</h3>
+        <p>Use email-link sign-in or anonymous tokens—your call. No passwords to remember.</p>
+      </article>
+      <article class="card">
+        <h3>3. Connect</h3>
+        <p>Pick a city or let SmartRoute auto-select the fastest node near you.</p>
+      </article>
+    </div>
+  </section>
+
+  <!-- FAQ /#/faq -->
+  <section id="faq" class="container" data-path="/faq">
+    <h2 class="title" style="font-size:32px">FAQ</h2>
+    <div class="faq">
+      <details>
+        <summary>Do you keep logs?</summary>
+        <p>No activity logs. Ephemeral session metadata only—enough to run the service, then it’s gone.</p>
+      </details>
+      <details>
+        <summary>What’s the protocol?</summary>
+        <p>Modern, UDP-based transport with ChaCha20-Poly1305 and X25519 key exchange, built for mobile + high latency networks.</p>
+      </details>
+      <details>
+        <summary>Can I share my plan?</summary>
+        <p>Starter is single-user. Pro supports 5 devices; Teams covers up to 20 with mesh.</p>
+      </details>
+    </div>
+  </section>
+
+  <!-- GET STARTED /#/get-started -->
+  <section id="get-started" class="container" data-path="/get-started">
+    <h2 class="title" style="font-size:32px">Ready when you are</h2>
+    <p class="subtitle">Spin up a secure tunnel in seconds.</p>
+    <form class="grid" style="grid-template-columns:2fr 2fr 1fr" onsubmit="event.preventDefault(); router.push('#/pricing');">
+      <div class="card">
+        <label for="email">Email (for magic link)</label>
+        <input id="email" type="email" required placeholder="you@privacy.zone" class="text" />
+      </div>
+      <div class="card">
+        <label for="planSel">Plan</label>
+        <select id="planSel" class="text">
+          <option>Starter</option>
+          <option selected>Pro</option>
+          <option>Teams</option>
+        </select>
+      </div>
+      <div class="card" style="display:flex;align-items:end;justify-content:stretch">
+        <button class="btn" type="submit" style="width:100%;justify-content:center">Continue</button>
+      </div>
+      <div class="card" style="grid-column:1/-1">
+        <label for="ref">Referral code (optional)</label>
+        <input id="ref" placeholder="NEON-2025" class="text" />
+      </div>
+    </form>
+  </section>
+</main>
+
+<footer>
+  <div class="foot">
+    <small>© <span id="yr"></span> FluxVPN. Built for speed & privacy.</small>
+    <small>Security audits on request • <a href="#/faq" data-route="#/faq">Privacy</a> • <a href="#/faq" data-route="#/faq">Terms</a></small>
+  </div>
+</footer>
+
+<!-- LOGIN MODAL -->
+<div class="modal-backdrop" id="loginBackdrop" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
+    <h3 id="loginTitle">Log in to continue</h3>
+    <p class="hint">You’ll complete checkout for <strong id="chosenPlanLabel">—</strong>.</p>
+    <div class="row">
+      <button id="googleLoginBtn" class="pill">
+        <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="#e8f0ff" d="M21.35 11.1h-9.17v2.96h5.53c-.24 1.5-1.66 4.39-5.53 4.39-3.33 0-6.06-2.76-6.06-6.17s2.73-6.17 6.06-6.17c1.9 0 3.18.81 3.91 1.51l2.66-2.57C17.51 3.3 15.16 2 12.18 2 6.95 2 2.69 6.29 2.69 11.52S6.95 21.04 12.18 21.04c7.02 0 8.69-6.14 8.69-9.36 0-.64-.07-1.07-.17-1.58z"/></svg>
+        Continue to user login (Google)
+      </button>
+      <button id="closeLogin" class="pill" type="button">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- PAY MODAL -->
+<div class="modal-backdrop" id="payBackdrop" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="payTitle">
+    <h3 id="payTitle">Complete purchase</h3>
+    <p class="hint">Plan: <strong id="planName">—</strong> • Amount: <strong id="planPrice">$0</strong></p>
+
+    <div id="payArea">
+      <!-- Wallets -->
+      <div class="panel">
+        <strong>Pay fast with Apple Pay / Google Pay</strong>
+        <div id="payment-request-button" style="margin-top:10px"></div>
+        <div id="prbStatus" class="status"></div>
+      </div>
+
+      <div class="divider">or pay with card</div>
+
+      <!-- Card form -->
+      <div class="panel">
+        <div class="field">
+          <label for="name">Name on card</label>
+          <input id="name" class="text" placeholder="Jane Doe" autocomplete="cc-name" />
+        </div>
+        <div class="field">
+          <label>Card details</label>
+          <div id="card-element" style="padding:12px;border:1px solid #24356f;border-radius:12px;background:#0b1431"></div>
+        </div>
+        <button id="cardPayBtn" class="btn paybtn" type="button">Pay</button>
+        <div id="cardStatus" class="status"></div>
+      </div>
+    </div>
+
+    <div class="row" style="justify-content:flex-end;margin-top:12px">
+      <button id="closePay" class="pill" type="button">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // -------- Config --------
+  const STRIPE_PK = "pk_live_51ReQgoHwN7YkNv6zwRaz8N1GO0PL7Bb3pqUbcxhss5cQQpJFKjoiNJR4DWKeTRWwhw2tmejOtXjbnrIg6sHnhxc600ePIEIgBc";
+  const BACKEND = "https://charmerspay.onrender.com";
+
+  // -------- Utilities --------
+  const $ = (sel)=>document.querySelector(sel);
+  const $$ = (sel)=>document.querySelectorAll(sel);
+  const yrEl = $("#yr"); yrEl.textContent = new Date().getFullYear();
+
+  function smoothScrollTo(el){
+    if(!el) return;
+    window.scrollTo({ top: el.getBoundingClientRect().top + window.pageYOffset - 70, behavior: 'smooth' });
+  }
+  function randCode(len=12){
+    const chars = "abcdef0123456789";
+    let s = "";
+    for(let i=0;i<len;i++) s += chars[Math.floor(Math.random()*chars.length)];
+    return s;
+  }
+
+  // -------- Hash Router (works on file:// and static hosts without rewrites) --------
+  const routes = ["/", "/features", "/pricing", "/download", "/faq", "/get-started"];
+  const getHashPath = ()=> (location.hash.replace(/^#/, "") || "/");
+  const router = {
+    push(path){ location.hash = path; },
+    replace(path){ const scroll = document.documentElement.scrollTop; location.replace(location.href.split('#')[0] + '#' + path); window.scrollTo(0, scroll); }
+  };
+  function render(path){
+    if(!path) path = getHashPath();
+
+    // Pay routes: #/pay/:code/stripepayments
+    const payMatch = path.match(/^\/pay\/([a-z0-9-]{6,})\/stripepayments$/i);
+    if(payMatch){
+      if(window.__selectedPlan){ openLoginOrPayFlow(window.__selectedPlan); }
+      else { router.replace("/pricing"); }
+      return;
+    }
+
+    // Section routes
+    const sec = document.querySelector(`[data-path="${path}"]`);
+    if(sec){
+      document.title = "FluxVPN — " + (path === "/" ? "Private. Fast. Futuristic." : path.replace("/","").replace("-"," ").toUpperCase());
+      smoothScrollTo(sec);
+      return;
+    }
+
+    // Unknown route → home
+    router.replace("/");
+  }
+  window.addEventListener("hashchange", ()=>render(getHashPath()));
+
+  // Intercept nav clicks (anchors use #/ already)
+  document.addEventListener("click", (e)=>{
+    const a = e.target.closest("a,button");
+    if(!a) return;
+    const route = a.getAttribute("data-route");
+    if(route){
+      if(route.startsWith("#/")) return; // let hashchange handle
+      e.preventDefault();
+      router.push(route);
+    }
+  });
+
+  // Initial render
+  if(!location.hash) location.hash = "#/";
+  render(getHashPath());
+
+  // -------- Hero terminal loop (vibes) --------
+  const term = document.getElementById('term');
+  const lines = [
+    {t:1200, msg:'peer: 203.0.113.42:51820' },
+    {t:900, msg:'latency: 23ms  ▸ throughput: 934Mbps' },
+    {t:1200, msg:'handshake complete. tunnel: <span class="ok">UP</span>' },
+    {t:1500, msg:'route: 0.0.0.0/0 via flux0' },
+    {t:1100, msg:'dns: 100.64.0.2 (DoH)' },
+  ];
+  (function loop(i=0){
+    if(!term) return;
+    if(i>=lines.length){ setTimeout(()=>{ term.innerHTML = term.innerHTML.split('\\n').slice(0,8).join('\\n') + '\\n'; loop(0); }, 2200); return; }
+    setTimeout(()=>{ term.innerHTML += '\\n' + lines[i].msg; term.scrollTop = term.scrollHeight; loop(i+1); }, lines[i].t);
+  })();
+
+  // -------- Pricing toggle --------
+  const mBtn = $("#mBtn");
+  const yBtn = $("#yBtn");
+  const priceEls = [$("#p1"), $("#p2"), $("#p3")];
+  const monthly = [6,10,16];
+  const yearly = monthly.map(v=>Math.round(v*0.8));
+  let billingMode = "monthly";
+  function setPrices(mode){
+    billingMode = mode;
+    const list = (mode==="yearly"? yearly : monthly);
+    priceEls.forEach((el,i)=> el.textContent = "$"+list[i]);
+    if(mBtn){ mBtn.classList.toggle("active", mode==="monthly"); mBtn.setAttribute("aria-selected", mode==="monthly"); }
+    if(yBtn){ yBtn.classList.toggle("active", mode==="yearly"); yBtn.setAttribute("aria-selected", mode==="yearly"); }
+  }
+  if(mBtn && yBtn){
+    mBtn.addEventListener("click", ()=>setPrices("monthly"));
+    yBtn.addEventListener("click", ()=>setPrices("yearly"));
+    setPrices("monthly");
+  }
+
+  // -------- Plan selection → #/pay/:code/stripepayments --------
+  let selected = { name:null, amountCents:0 };
+  let stripe, elements, cardEl, prEl, currentClientSecret = null;
+
+  $$(".choose-plan").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      const name = btn.dataset.plan;
+      const base = Number(btn.dataset.monthly);
+      const unit = (billingMode==="yearly" ? Math.round(base*0.8)*12 : base);
+      selected = { name, amountCents: unit*100, billingMode };
+      window.__selectedPlan = { ...selected };
+      const token = randCode(16);
+      router.push(`#/pay/${token}/stripepayments`);
+      openLoginOrPayFlow(selected);
+    });
+  });
+
+  function openLoginOrPayFlow(sel){
+    $("#chosenPlanLabel").textContent = `${sel.name} — $${(sel.amountCents/100).toFixed(0)}${(sel.billingMode==="yearly"?" /yr":" /mo")}`;
+    openLogin();
+  }
+
+  // -------- Login modal (Google mock) --------
+  const loginBackdrop = $("#loginBackdrop");
+  const closeLoginBtn = $("#closeLogin");
+  function openLogin(){ loginBackdrop.style.display = "flex"; }
+  function closeLogin(){ loginBackdrop.style.display = "none"; }
+  if(closeLoginBtn) closeLoginBtn.addEventListener("click", closeLogin);
+  $("#googleLoginBtn").addEventListener("click", ()=>{
+    closeLogin();
+    openPay();
+  });
+
+  // -------- Pay modal with Stripe (Wallets + Card) --------
+  const payBackdrop = $("#payBackdrop");
+  const closePayBtn = $("#closePay");
+  function openPay(){
+    const plan = window.__selectedPlan || selected;
+    if(!plan || !plan.name){ router.replace("/pricing"); return; }
+    $("#planName").textContent = plan.name;
+    $("#planPrice").textContent = `$${(plan.amountCents/100).toFixed(0)}` + (plan.billingMode==="yearly" ? " /yr" : " /mo");
+    payBackdrop.style.display = "flex";
+    $("#payArea").style.display = "block";
+    initStripeUI(plan).catch(err=>{
+      setStatus("#cardStatus", "Stripe init failed: " + err.message);
+    });
+  }
+  function closePay(){ payBackdrop.style.display = "none"; }
+  if(closePayBtn) closePayBtn.addEventListener("click", closePay);
+
+  function setStatus(sel, msg){ const el = document.querySelector(sel); if(el) el.textContent = msg || ""; }
+
+  async function initStripeUI(plan){
+    if(!stripe){ stripe = Stripe(STRIPE_PK); }
+    if(!elements){ elements = stripe.elements({ appearance:{ theme: 'night' } }); }
+    // Mount card element if not mounted
+    if(!cardEl){
+      cardEl = elements.create('card', { hidePostalCode: false });
+      cardEl.mount('#card-element');
+    }
+    // Build/refresh Payment Request button
+    await setupPaymentRequest(plan);
+    // Prepare PaymentIntent for card flow (create once per plan selection)
+    currentClientSecret = null;
+  }
+
+  async function setupPaymentRequest(plan){
+    const pr = stripe.paymentRequest({
+      country: "US",
+      currency: "usd",
+      total: { label: `FluxVPN ${plan.name} (${plan.billingMode==="yearly"?"Yearly":"Monthly"})`, amount: plan.amountCents },
+      requestPayerName: true,
+      requestPayerEmail: true,
+    });
+
+    const canPay = await pr.canMakePayment();
+    const mount = document.getElementById("payment-request-button");
+    mount.innerHTML = "";
+    if(canPay){
+      if(prEl){ prEl.unmount(); }
+      prEl = elements.create("paymentRequestButton", { paymentRequest: pr, style:{ paymentRequestButton:{ type:"buy" } } });
+      prEl.mount("#payment-request-button");
+      setStatus("#prbStatus", canPay.applePay ? "Apple Pay ready" : (canPay.googlePay ? "Google Pay ready" : "Wallet ready"));
+    }else{
+      setStatus("#prbStatus", "No compatible wallet found. Try Safari iOS (Apple Pay) or Chrome (Google Pay).");
+      return;
+    }
+
+    pr.on("paymentmethod", async (ev) => {
+      try{
+        const clientSecret = await createPaymentIntent(plan);
+        const { paymentIntent, error } = await stripe.confirmCardPayment(clientSecret, { payment_method: ev.paymentMethod.id }, { handleActions:false });
+        if(error){ ev.complete("fail"); alert("Payment failed: " + (error.message || "Unknown error")); return; }
+        if(paymentIntent.status === "requires_action"){
+          const { error: actionError } = await stripe.confirmCardPayment(clientSecret);
+          if(actionError){ ev.complete("fail"); alert("Payment failed: " + (actionError.message || "Unknown error")); return; }
+        }
+        ev.complete("success");
+        try {
+          fetch(`${BACKEND}/after-payment`, { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ clientSecret, plan: plan.name, billingMode: plan.billingMode }) });
+        }catch(_){}
+        alert("Payment processed! Welcome to FluxVPN " + plan.name + ".");
+        closePay();
+        router.push("#/download");
+      }catch(err){
+        ev.complete("fail");
+        alert("Payment error: " + err.message);
+      }
+    });
+  }
+
+  async function createPaymentIntent(plan){
+    if(currentClientSecret) return currentClientSecret;
+    const resp = await fetch(`${BACKEND}/create-payment-intent`, {
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify({ amount: plan.amountCents, currency:"usd", metadata:{ plan: plan.name, billing_mode: plan.billingMode } })
+    });
+    if(!resp.ok){
+      const txt = await resp.text().catch(()=> "");
+      throw new Error("Backend error creating Payment Intent. " + txt);
+    }
+    const { clientSecret } = await resp.json();
+    currentClientSecret = clientSecret;
+    return clientSecret;
+  }
+
+  // Card pay button
+  const cardPayBtn = document.getElementById("cardPayBtn");
+  if(cardPayBtn){
+    cardPayBtn.addEventListener("click", async ()=>{
+      try{
+        const plan = window.__selectedPlan || selected;
+        if(!plan || !plan.name){ setStatus("#cardStatus","Plan not selected."); return; }
+        setStatus("#cardStatus","Creating payment...");
+        const clientSecret = await createPaymentIntent(plan);
+
+        const name = (document.getElementById("name") || {}).value || undefined;
+        const { paymentIntent, error } = await stripe.confirmCardPayment(clientSecret, {
+          payment_method: {
+            card: cardEl,
+            billing_details: { name }
+          }
+        });
+        if(error){ setStatus("#cardStatus", "Payment failed: " + (error.message || "Unknown error")); return; }
+        if(paymentIntent && paymentIntent.status === "succeeded"){
+          setStatus("#cardStatus","Success! Activating your plan...");
+          try {
+            fetch(`${BACKEND}/after-payment`, { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ clientSecret, plan: plan.name, billingMode: plan.billingMode }) });
+          }catch(_){}
+          alert("Payment processed! Welcome to FluxVPN " + plan.name + ".");
+          closePay();
+          router.push("#/download");
+        }else{
+          setStatus("#cardStatus","Payment status: " + (paymentIntent ? paymentIntent.status : "unknown"));
+        }
+      }catch(err){
+        setStatus("#cardStatus","Payment error: " + err.message);
+      }
+    });
+  }
+</script>
+</body>
+</html>
